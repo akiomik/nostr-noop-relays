@@ -1,8 +1,8 @@
 use std::env;
 
-use futures_util::{StreamExt, SinkExt};
+use futures_util::{SinkExt, StreamExt};
 use log::*;
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 use tokio::net::{TcpListener, TcpStream};
 use tokio_tungstenite::accept_async;
 use tokio_tungstenite::tungstenite::{Error, Message, Result};
@@ -29,7 +29,9 @@ async fn accept_connection(stream: TcpStream) {
 }
 
 async fn handle_connection(stream: TcpStream) -> Result<()> {
-    let addr = stream.peer_addr().expect("connected streams should have a peer address");
+    let addr = stream
+        .peer_addr()
+        .expect("connected streams should have a peer address");
     info!("New WebSocket connection: {}", addr);
 
     let ws_stream = accept_async(stream).await.expect("Failed to accept");
@@ -62,7 +64,9 @@ async fn handle_connection(stream: TcpStream) -> Result<()> {
 #[tokio::main]
 async fn main() {
     env_logger::init();
-    let addr = env::args().nth(1).unwrap_or_else(|| "0.0.0.0:8080".to_string());
+    let addr = env::args()
+        .nth(1)
+        .unwrap_or_else(|| "0.0.0.0:8080".to_string());
 
     let listener = TcpListener::bind(&addr).await.expect("Failed to bind");
     info!("Listening on: {}", addr);
