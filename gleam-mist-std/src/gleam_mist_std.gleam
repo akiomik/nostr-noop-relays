@@ -26,7 +26,7 @@ pub fn main() {
           mist.websocket(
             request: req,
             on_init: fn() { #(state, Some(selector)) },
-            on_close: fn() { io.println("goodbye!") },
+            on_close: fn(_) { io.println("goodbye!") },
             handler: handle_ws_message,
           )
 
