@@ -1,0 +1,17 @@
+.{
+    .name = "relay",
+    .version = "0.1.0",
+    .dependencies = .{
+        // zap v0.1.14-pre
+        .zap = .{
+            .url = "https://github.com/zigzap/zap/archive/refs/tags/v0.1.14-pre.tar.gz",
+            .hash = "122067d12bc7abb93f7ce623f61b94cadfdb180cef12da6559d092e6b374202acda3",
+        },
+        .simdjzon = .{
+            .url = "https://github.com/travisstaloch/simdjzon/archive/13247baeb681f3c37bfd0bffd959bbc63e9eb0c1.tar.gz",
+            .hash = "1220ec0fc77f84eb025613a3caf34f5adb84b0f2505e97c8326b5bce29e362ebe757",
+            // .url = "https://github.com/travisstaloch/simdjzon/archive/refs/heads/main.tar.gz",
+            // .hash = "12204a43ff6a58e46fef37fc0c9cd4574baa2216f45b870ca25f70881e31e970a379",
+        },
+    },
+}
