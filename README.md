@@ -1,2 +1,3 @@
 # nostr-noop-relays
-A collection of noop relay implementations for Nostr
+
+A collection of noop relay implementations for Nostr.
