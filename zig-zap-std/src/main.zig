@@ -21,7 +21,7 @@ const Event = struct {
 };
 
 const EventPayload = struct {
-    []const u8,
+    *[5:0]u8,
     Event,
 };
 
@@ -108,8 +108,8 @@ fn handle_websocket_message(
 
         if (maybe_payload) |e| {
             if (std.mem.eql(u8, e.value[0], "EVENT")) {
-                var jsonbuf: [128]u8 = undefined;
-                const json = std.fmt.bufPrint(&jsonbuf, "[\"OK\",\"{s}\",true,\"\"]", .{e.value[1].id}) catch @panic("error");
+                var jsonbuf = arena_alloc.alloc(u8, 128) catch @panic("error");
+                const json = std.fmt.bufPrint(jsonbuf, "[\"OK\",\"{s}\",true,\"\"]", .{e.value[1].id}) catch @panic("error");
                 WebsocketHandler.publish(
                     .{ .channel = ctx.channel, .message = json },
                 );
@@ -166,7 +166,6 @@ pub fn main() !void {
             .on_upgrade = on_upgrade,
             .max_clients = 100,
             .max_body_size = 1 * 1024,
-            .public_folder = "examples/websockets/frontend",
             .log = false,
         },
     );
@@ -176,7 +175,7 @@ pub fn main() !void {
     std.log.info("Terminate with CTRL+C", .{});
 
     zap.start(.{
-        .threads = 1,
-        .workers = 1,
+        .threads = 2,
+        .workers = 2,
     });
 }
