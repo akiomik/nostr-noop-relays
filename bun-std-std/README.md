@@ -1,15 +1,8 @@
-# relay
+# bun-std-std
 
-To install dependencies:
-
-```bash
-bun install
-```
-
-To run:
+## Build with Docker
 
 ```bash
-bun run index.ts
+docker build -t bun-std-std .
+docker run -it --rm --name bun-std-std -p 8080:8080 --init bun-std-std
 ```
-
-This project was created using `bun init` in bun v1.0.13. [Bun](https://bun.sh) is a fast all-in-one JavaScript runtime.
