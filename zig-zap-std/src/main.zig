@@ -20,9 +20,26 @@ const Event = struct {
     content: []const u8,
 };
 
+// TODO: Add support tags
+const Req = struct {
+    ids: ?[][]const u8 = null,
+    authors: ?[][]const u8 = null,
+    kinds: ?[]u32 = null,
+    since: ?u32 = null,
+    until: ?u32 = null,
+    limit: ?u32 = null,
+};
+
 const EventPayload = struct {
     *[5:0]u8,
     Event,
+};
+
+// TODO: Add multiple filters support
+const ReqPayload = struct {
+    *[3]u8,
+    []const u8,
+    Req,
 };
 
 const ContextList = std.ArrayList(*Context);
@@ -103,13 +120,26 @@ fn handle_websocket_message(
         var arena = std.heap.ArenaAllocator.init(GlobalContextManager.allocator);
         defer arena.deinit();
         const arena_alloc = arena.allocator();
-        const maybe_payload: ?std.json.Parsed(EventPayload) =
-            std.json.parseFromSlice(EventPayload, arena_alloc, message, .{}) catch null;
 
-        if (maybe_payload) |e| {
+        const maybe_event_payload: ?std.json.Parsed(EventPayload) =
+            std.json.parseFromSlice(EventPayload, arena_alloc, message, .{}) catch null;
+        if (maybe_event_payload) |e| {
             if (std.mem.eql(u8, e.value[0], "EVENT")) {
-                var jsonbuf = arena_alloc.alloc(u8, 128) catch @panic("error");
+                var jsonbuf = arena_alloc.alloc(u8, 96) catch @panic("error");
                 const json = std.fmt.bufPrint(jsonbuf, "[\"OK\",\"{s}\",true,\"\"]", .{e.value[1].id}) catch @panic("error");
+                WebsocketHandler.publish(
+                    .{ .channel = ctx.channel, .message = json },
+                );
+                return;
+            }
+        }
+
+        const maybe_req_payload: ?std.json.Parsed(ReqPayload) =
+            std.json.parseFromSlice(ReqPayload, arena_alloc, message, .{}) catch null;
+        if (maybe_req_payload) |r| {
+            if (std.mem.eql(u8, r.value[0], "REQ")) {
+                var jsonbuf = arena_alloc.alloc(u8, 96) catch @panic("error");
+                const json = std.fmt.bufPrint(jsonbuf, "[\"EOSE\",\"{s}\"]", .{r.value[1]}) catch @panic("error");
                 WebsocketHandler.publish(
                     .{ .channel = ctx.channel, .message = json },
                 );
