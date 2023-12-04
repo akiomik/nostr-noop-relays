@@ -52,6 +52,19 @@ pub type Event {
   )
 }
 
+pub type Filter {
+  // TODO: Add tag filtering support
+  // TODO: Add optional parameter support
+  Filter(
+    ids: List(String),
+    authors: List(String),
+    kinds: List(Int),
+    since: Int,
+    until: Int,
+    limit: Int,
+  )
+}
+
 fn handle_ws_message(state, conn, message) {
   case message {
     mist.Text(<<"[\"EVENT\",":utf8, _:bits>> as req) -> {
@@ -75,8 +88,25 @@ fn handle_ws_message(state, conn, message) {
         )
       actor.continue(state)
     }
-    mist.Text(<<"[\"REQ\",":utf8, _:bits>>) -> {
-      let assert Ok(_) = mist.send_text_frame(conn, <<"[\"EOSE\"]":utf8>>)
+    mist.Text(<<"[\"REQ\",":utf8, _:bits>> as req) -> {
+      // TODO: Add multiple filter support
+      let filter_decoder =
+        dynamic.decode6(
+          Filter,
+          field("ids", of: dynamic.list(dynamic.string)),
+          field("authors", of: dynamic.list(dynamic.string)),
+          field("kinds", of: dynamic.list(dynamic.int)),
+          field("since", of: dynamic.int),
+          field("until", of: dynamic.int),
+          field("limit", of: dynamic.int),
+        )
+      let payload_decoder = dynamic.tuple3(dynamic.string, dynamic.string, filter_decoder)
+      let assert Ok(#(_, subid, _)) = json.decode_bits(req, using: payload_decoder)
+      let assert Ok(_) =
+        mist.send_text_frame(
+          conn,
+          <<"[\"EOSE\",\"":utf8, subid:utf8, "\"]":utf8>>
+        )
       actor.continue(state)
     }
     mist.Text(_) | mist.Binary(_) | mist.Custom(_) -> actor.continue(state)
