@@ -11,7 +11,11 @@ Bun.serve({
     message(ws, message) {
       try {
         const payload = JSON.parse(String(message));
-        ws.send(`["OK","${payload[1].id}",true,""]`);
+        if (payload[0] === 'EVENT') {
+          ws.send(`["OK","${payload[1].id}",true,""]`);
+        } else if (payload[0] === 'REQ') {
+          ws.send(`["EOSE","${payload[1]}"]`);
+        }
       } catch (e) {}
     },
     open(ws) {},
