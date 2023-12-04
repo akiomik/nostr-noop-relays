@@ -17,7 +17,23 @@ struct Event {
     tags: Vec<Vec<String>>,
 }
 
-type EventPayload = (String, Event);
+// TODO: Add tag filtering support
+#[derive(Serialize, Deserialize, Debug)]
+struct Filter {
+    ids: Option<Vec<String>>,
+    authors: Option<Vec<String>>,
+    kinds: Option<Vec<u32>>,
+    since: Option<u32>,
+    until: Option<u32>,
+    limit: Option<u32>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
+enum RequestPayload {
+    Event(String, Event),
+    // TODO: Add multiple filters support
+    Filter(String, String, Filter),
+}
 
 async fn accept_connection(stream: TcpStream) {
     if let Err(e) = handle_connection(stream).await {
@@ -43,12 +59,16 @@ async fn handle_connection(stream: TcpStream) -> Result<()> {
                 match msg {
                     Some(msg) => {
                         let msg = msg?;
-                        let try_payload: serde_json::Result<EventPayload> = serde_json::from_str(&msg.to_string());
+                        let try_payload: serde_json::Result<RequestPayload> = serde_json::from_str(&msg.to_string());
                         match try_payload {
-                            Ok((_, ev)) => {
+                            Ok(RequestPayload::Event(_, ev)) => {
                                 let res = Message::Text(format!("[\"OK\",\"{}\",true,\"\"]", ev.id));
                                 write.send(res).await?;
                             },
+                            Ok(RequestPayload::Filter(_, subid, _)) => {
+                                let res = Message::Text(format!("[\"EOSE\",\"{}\"]", subid));
+                                write.send(res).await?;
+                            }
                             Err(_) => continue,
                         }
                     },
