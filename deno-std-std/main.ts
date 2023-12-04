@@ -13,7 +13,11 @@ Deno.serve({
     socket.onmessage = (event) => {
       try {
         const payload = JSON.parse(event.data);
-        socket.send(`["OK","${payload[1].id}",true,""]`);
+        if (payload[0] === 'EVENT') {
+          ws.send(`["OK","${payload[1].id}",true,""]`);
+        } else if (payload[0] === 'REQ') {
+          ws.send(`["EOSE","${payload[1]}"]`);
+        }
       } catch (e) {}
     };
     socket.onclose = () => console.log("DISCONNECTED");
