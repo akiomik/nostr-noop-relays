@@ -19,11 +19,6 @@ defmodule RelayWeb.NostrSocket do
     {:ok, state}
   end
 
-  def handle_in({"ping" <> _, _opts}, state) do
-    Logger.debug("ping")
-    {:reply, :ok, {:text, "pong"}, state}
-  end
-
   def handle_in(req = {"[\"REQ\"," <> _, _opts}, state) do
     Logger.debug("req: #{req}")
     payload = Jason.decode!(req, keys: :atoms)
